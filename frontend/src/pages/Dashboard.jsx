@@ -33,7 +33,9 @@ export default function Dashboard() {
             if (!data.slug || !data.id) {
                 throw new Error('Server did not return a campaign slug or id');
             }
-            setGeneratedLink(`${window.location.origin}/c/${data.slug}`);
+            // Give them the backend share link for perfect social previews
+            setGeneratedLink(`${import.meta.env.VITE_API_URL}/share/${data.slug}`);
+            // The secret dashboard stays on the frontend
             setSecretLink(`${window.location.origin}/results/${data.id}`);
         } catch (err) {
             console.error('Failed to generate link', err);

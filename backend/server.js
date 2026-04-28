@@ -93,6 +93,39 @@ app.post('/api/submissions', async (req, res) => {
     }
 });
 
+// API: Dynamic Social Share Preview Endpoint
+app.get('/share/:slug', async (req, res) => {
+    const { slug } = req.params;
+    try {
+        const result = await pool.query('SELECT config FROM campaigns WHERE slug = $1', [slug]);
+        if (result.rows.length > 0) {
+            const config = result.rows[0].config;
+            const frontendUrl = `https://links.pandalime.com/c/${slug}`;
+            const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${config.title}</title>
+                <meta property="og:title" content="${config.title}" />
+                <meta property="og:description" content="Calculate your exact compatibility now!" />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="${frontendUrl}" />
+                <script>window.location.replace("${frontendUrl}");</script>
+            </head>
+            <body style="background: #0f172a; color: white; text-align: center; font-family: sans-serif; padding-top: 50px;">
+                <p>Redirecting to your match...</p>
+            </body>
+            </html>
+            `;
+            res.send(html);
+        } else {
+            res.status(404).send('Prank not found');
+        }
+    } catch (err) {
+        res.status(500).send('Error loading preview');
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
