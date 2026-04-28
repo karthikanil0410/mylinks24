@@ -8,6 +8,7 @@ export default function Dashboard() {
         prankMessage: '😂 You got pranked! I now know who your crush is!'
     });
     const [generatedLink, setGeneratedLink] = useState('');
+    const [secretLink, setSecretLink] = useState('');
     const [copied, setCopied] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,6 +19,7 @@ export default function Dashboard() {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setSecretLink('');
         try {
             const response = await fetch(`${apiUrl}/api/campaigns`, {
                 method: 'POST',
@@ -28,10 +30,11 @@ export default function Dashboard() {
                 throw new Error(`Server returned ${response.status}`);
             }
             const data = await response.json();
-            if (!data.slug) {
-                throw new Error('Server did not return a campaign slug');
+            if (!data.slug || !data.id) {
+                throw new Error('Server did not return a campaign slug or id');
             }
             setGeneratedLink(`${window.location.origin}/c/${data.slug}`);
+            setSecretLink(`${window.location.origin}/results/${data.id}`);
         } catch (err) {
             console.error('Failed to generate link', err);
             setError('Unable to generate link. Make sure the backend is running and the API URL is correct.');
@@ -98,13 +101,13 @@ export default function Dashboard() {
                     </form>
                 ) : (
                     <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="space-y-6 relative z-10 text-center">
-                        <div className="p-5 bg-green-500/10 border border-green-500/30 rounded-xl">
-                            <h3 className="text-green-400 font-bold mb-2 flex items-center justify-center gap-2">
-                                <CheckCircle size={20} /> Link Ready to Share!
-                            </h3>
-                            <p className="text-sm text-gray-300 break-all bg-black/40 p-3 rounded-lg">
-                                {generatedLink}
-                            </p>
+                        <div className="p-5 bg-green-500/10 border border-green-500/30 rounded-xl mb-4">
+                            <h3 className="text-green-400 font-bold mb-2">1. Send This Link to Victims</h3>
+                            <p className="text-sm text-gray-300 break-all bg-black/40 p-3 rounded-lg mb-4">{generatedLink}</p>
+
+                            <h3 className="text-pink-400 font-bold mb-2">2. Save Your Secret Dashboard Link</h3>
+                            <p className="text-xs text-gray-400 mb-2">Do not share this! Open it later to see who fell for the prank.</p>
+                            <p className="text-sm text-gray-300 break-all bg-black/40 p-3 rounded-lg">{secretLink}</p>
                         </div>
 
                         <button 
@@ -115,7 +118,10 @@ export default function Dashboard() {
                         </button>
 
                         <button 
-                            onClick={() => setGeneratedLink('')}
+                            onClick={() => {
+                                setGeneratedLink('');
+                                setSecretLink('');
+                            }}
                             className="text-sm text-gray-400 hover:text-white transition-colors underline"
                         >
                             Create another link
